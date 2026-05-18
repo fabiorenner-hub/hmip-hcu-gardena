@@ -2,6 +2,8 @@
 
 # hmip-gardena-plugin
 
+📦 **[Download hmip-gardena-plugin-1.0.0.tar.gz](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.0.0.tar.gz)** — install via HCUweb → *Developer mode → Plugins → Install from file*.
+
 Homematic IP HCU plugin that brings Gardena smart system devices (mowers,
 valves, power sockets, sensors) into the HMIP app — inspired by the Home
 Assistant integration `hass-gardena-smart-system`, but built natively as an
