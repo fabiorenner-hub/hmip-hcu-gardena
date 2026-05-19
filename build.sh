@@ -2,7 +2,7 @@
 set -euo pipefail
 
 IMAGE="hmip-gardena-plugin"
-TAG="1.0.0"
+TAG="1.1.0"
 PLATFORM="linux/arm64"
 OUT="${IMAGE}-${TAG}.tar"
 OUT_GZ="${OUT}.gz"

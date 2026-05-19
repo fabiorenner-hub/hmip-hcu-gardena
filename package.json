@@ -1,6 +1,6 @@
 {
   "name": "hmip-gardena-plugin",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Homematic IP HCU plugin that bridges Gardena smart system devices (mowers, valves, sockets, sensors) into the HMIP app via the official Husqvarna v2 API.",
   "author": "Fabio Renner",
   "license": "Apache-2.0",
