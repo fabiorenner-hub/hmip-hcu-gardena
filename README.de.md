@@ -1,4 +1,4 @@
-> [ðŸ‡¬ðŸ‡§ English](README.md) | ðŸ‡©ðŸ‡ª Deutsch
+> [🇬🇧 English](README.md) | 🇩🇪 Deutsch
 
 <p align="center">
   <img src="icon.svg" alt="hmip-gardena-plugin Symbolbild" width="128" height="128"/>
@@ -6,12 +6,12 @@
 
 # hmip-gardena-plugin
 
-ðŸ“¦ **[hmip-gardena-plugin-1.1.1.tar.gz herunterladen](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.1.1.tar.gz)** â€” Installation in HCUweb Ã¼ber *Entwicklermodus â†’ Plugins â†’ Aus Datei installieren*.
+📦 **[hmip-gardena-plugin-1.1.2.tar.gz herunterladen](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.1.2.tar.gz)** — Installation in HCUweb über *Entwicklermodus → Plugins → Aus Datei installieren*.
 
 GitHub: <https://github.com/fabiorenner-hub/hmip-hcu-gardena>
 
-Homematic IP HCU Plugin, das **Gardena smart system** GerÃ¤te (MÃ¤her,
-Ventile, Steckdosen, Sensoren) Ã¼ber die offizielle Husqvarna-v2-API in die
+Homematic IP HCU Plugin, das **Gardena smart system** Geräte (Mäher,
+Ventile, Steckdosen, Sensoren) über die offizielle Husqvarna-v2-API in die
 HMIP-App bringt.
 
 ## Spenden
@@ -22,13 +22,13 @@ hält bei mir die Lichter an, während ich weitere HCU-Plugins baue:
 
 ## Auf der HCU installieren
 
-1. Aktuellste `hmip-gardena-plugin-<version>.tar.gz` aus den
+1. Aktuelle `hmip-gardena-plugin-<version>.tar.gz` aus den
    [Releases](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases) holen.
-2. In HCUweb *Entwicklermodus â†’ Plugins â†’ Aus Datei installieren* Ã¶ffnen und hochladen.
-3. Plugin-Kachel Ã¶ffnen â†’ *Konfiguration* und Husqvarna-API-Zugangsdaten
+2. In HCUweb *Entwicklermodus → Plugins → Aus Datei installieren* öffnen und hochladen.
+3. Plugin-Kachel öffnen → *Konfiguration* und Husqvarna-API-Zugangsdaten
    eintragen (**API Key** / **API Secret** aus dem
    [Husqvarna Developer Portal](https://developer.husqvarnagroup.cloud/)).
-4. Speichern. Nach dem OAuth-Login erscheinen deine Gardena-GerÃ¤te im HMIP-Posteingang.
+4. Speichern. Nach dem OAuth-Login erscheinen deine Gardena-Geräte im HMIP-Posteingang.
 
 ## Selbst bauen
 
@@ -43,7 +43,7 @@ chmod +x build.sh
 
 ## Voraussetzungen auf der HCU
 
-- HCU1 mit Firmware 1.4.7+
+- HCU1 mit Firmware **1.4.7 oder neuer**
 - Entwicklermodus aktiviert
 - HCU mit Internetzugang
 

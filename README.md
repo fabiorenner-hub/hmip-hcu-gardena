@@ -1,4 +1,4 @@
-> ðŸ‡¬ðŸ‡§ English | [ðŸ‡©ðŸ‡ª Deutsch](README.de.md)
+> 🇬🇧 English | [🇩🇪 Deutsch](README.de.md)
 
 <p align="center">
   <img src="icon.svg" alt="hmip-gardena-plugin icon" width="128" height="128"/>
@@ -6,7 +6,7 @@
 
 # hmip-gardena-plugin
 
-ðŸ“¦ **[Download hmip-gardena-plugin-1.1.1.tar.gz](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.1.1.tar.gz)** â€” install via HCUweb â†’ *Developer mode â†’ Plugins â†’ Install from file*.
+📦 **[Download hmip-gardena-plugin-1.1.2.tar.gz](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.1.2.tar.gz)** — install via HCUweb → *Developer mode → Plugins → Install from file*.
 
 GitHub: <https://github.com/fabiorenner-hub/hmip-hcu-gardena>
 
@@ -24,8 +24,8 @@ me keep the lights on while building more HCU plugins:
 
 1. Download the latest `hmip-gardena-plugin-<version>.tar.gz` from
    [Releases](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases).
-2. In HCUweb open *Developer mode â†’ Plugins â†’ Install from file* and upload it.
-3. Open the plugin tile â†’ *Configuration* and fill in your Husqvarna API
+2. In HCUweb open *Developer mode → Plugins → Install from file* and upload it.
+3. Open the plugin tile → *Configuration* and fill in your Husqvarna API
    **API key** and **API secret** (Application Key/Secret from the
    [Husqvarna Developer Portal](https://developer.husqvarnagroup.cloud/)).
 4. Save. After OAuth your Gardena devices appear in the HMIP inbox.
@@ -43,7 +43,7 @@ chmod +x build.sh
 
 ## HCU requirements
 
-- HCU1 with firmware 1.4.7+
+- HCU1 with firmware **1.4.7 or newer**
 - Developer mode enabled
 - HCU has internet access
 

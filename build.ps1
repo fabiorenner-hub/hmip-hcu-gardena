@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $Image = 'hmip-gardena-plugin'
-$Tag = '1.1.1'
+$Tag = '1.1.2'
 $Platform = 'linux/arm64'
 $Out = "$Image-$Tag.tar"
 $OutGz = "$Out.gz"
@@ -27,4 +27,5 @@ try { $in.CopyTo($gz) } finally { $gz.Dispose(); $outFs.Dispose(); $in.Dispose()
 Remove-Item $Out -Force
 
 Write-Host ">> Done: $(Resolve-Path $OutGz)"
+
 
