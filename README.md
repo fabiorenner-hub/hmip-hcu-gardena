@@ -51,6 +51,12 @@ chmod +x build.sh
 
 Issued by **Fabio Renner**.
 
+### Third-party components
+
+- Uses the official [Husqvarna Authentication API and Gardena smart system API v2](https://developer.husqvarnagroup.cloud/).
+- Gardena and the smart system are products of Husqvarna Group; this plugin is not affiliated with or endorsed by Husqvarna / Gardena.
+- Built against the [Homematic IP Connect API 1.0.1](https://github.com/homematicip/connect-api) by eQ-3.
+
 ## License
 
 Apache-2.0
