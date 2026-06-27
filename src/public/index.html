@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark light" />
+    <title>Gardena smart system · HMIP Plugin</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f59e0b'/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+    <header class="app__header">
+        <div class="app__brand">
+            <img src="/icon.svg" alt="" onerror="this.style.display='none'" />
+            <span class="app__title" id="appTitle">Gardena smart system</span>
+        </div>
+        <div class="app__spacer"></div>
+        <span class="chip" id="connChip"><span class="dot"></span><span id="connText">…</span></span>
+        <button class="version-badge" id="versionBadge" title="Updates">v…</button>
+    </header>
+
+    <nav class="app__nav" id="moduleNav"></nav>
+    <div id="updateBanner"></div>
+
+    <main id="view">
+        <div class="loading">…</div>
+    </main>
+
+    <script src="/version.js"></script>
+    <script src="/app.js"></script>
+</body>
+</html>

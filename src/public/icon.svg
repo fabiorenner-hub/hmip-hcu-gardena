@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Gardena Plugin">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b3320"/>
+      <stop offset="100%" stop-color="#06170d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+  <path d="M256 96 C 320 184 360 240 360 296 a104 104 0 1 1 -208 0 C 152 240 192 184 256 96 Z"
+        fill="#22b8cf" stroke="#15aabf" stroke-width="6"/>
+  <path d="M232 280 C 232 244 244 220 268 200 C 248 244 248 268 256 308 C 244 308 232 296 232 280 Z"
+        fill="#e3fafc" opacity="0.7"/>
+  <path d="M120 376 C 200 336 296 336 392 376 C 360 416 280 432 200 416 C 168 408 140 396 120 376 Z"
+        fill="#37b24d" stroke="#2b8a3e" stroke-width="4"/>
+  <line x1="140" y1="384" x2="376" y2="392" stroke="#2b8a3e" stroke-width="3"/>
+</svg>

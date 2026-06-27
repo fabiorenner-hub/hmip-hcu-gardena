@@ -35,6 +35,11 @@ class HcuClient extends EventEmitter {
         this._connect();
     }
 
+    /** True while the HCU websocket is open and ready to send. */
+    get connected() {
+        return Boolean(this._ws && this._ws.readyState === WebSocket.OPEN);
+    }
+
     stop() {
         this._stopping = true;
         if (this._reconnectTimer) clearTimeout(this._reconnectTimer);

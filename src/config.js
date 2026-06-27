@@ -38,6 +38,18 @@ function pick(key, fallback) {
     return fallback;
 }
 
+function asBool(v, dflt) {
+    if (v === undefined || v === null || v === '') return dflt;
+    if (typeof v === 'boolean') return v;
+    return String(v).toLowerCase() === 'true' || String(v) === '1';
+}
+
+function readDashboardPort() {
+    const raw = pick('DASHBOARD_PORT', '') || process.env.HMIP_DASHBOARD_PORT || 8093;
+    const n = Number(raw);
+    return Number.isInteger(n) && n >= 1024 && n <= 65535 ? n : 8093;
+}
+
 const cfg = {
     pluginId: PLUGIN_ID,
     isInstalled,
@@ -57,12 +69,38 @@ const cfg = {
         defaultValveDurationSec: Number(pick('GARDENA_VALVE_DURATION_SEC', 30 * 60)),
         authBase: process.env.GARDENA_AUTH_URL || 'https://api.authentication.husqvarnagroup.dev',
         apiBase: process.env.GARDENA_API_URL || 'https://api.smart.gardena.dev',
-        websocketPingIntervalMs: 150 * 1000,
+        // Keep-alive pings are free (they ride the existing socket, no REST
+        // quota). 60s gives a comfortable margin against the server-side idle
+        // timeout without spending any rate-limit budget.
+        websocketPingIntervalMs: 60 * 1000,
+        // Base reconnect delay. The real delay grows exponentially with jitter
+        // (see _scheduleReconnect) up to maxReconnectDelayMs so a flapping
+        // connection doesn't burn the small Gardena REST quota and trip a 429.
         reconnectDelayMs: 30 * 1000,
+        maxReconnectDelayMs: 5 * 60 * 1000,
+        // Husqvarna's free developer tier rate-limits hard and answers HTTP 429
+        // "Limit Exceeded". Retrying quickly only digs deeper, so on a 429 we
+        // back off for a long, fixed cooldown before trying again. (The same
+        // pattern the openHAB/Home Assistant Gardena integrations adopted.)
+        rateLimitCooldownMs: 60 * 60 * 1000,
+        // Only reload the full REST location snapshot when our cache is empty
+        // or this stale. Routine websocket reconnects then cost a single POST
+        // instead of POST + GET, which keeps us well under the rate limit.
+        snapshotMaxAgeMs: 30 * 60 * 1000,
     },
 
     log: {
         level: (process.env.LOG_LEVEL || 'info').toLowerCase(),
+    },
+
+    dashboard: {
+        // Toggle + port are user-editable from the HCUweb plugin settings.
+        // NOTE: the container's HEALTHCHECK and EXPOSE are fixed to 8093 at
+        // build time, so a health endpoint always stays reachable on 8093
+        // regardless of these values (see dashboard.js). Picking a different
+        // port mainly changes where the UI itself listens.
+        enabled: asBool(pick('DASHBOARD_ENABLED', undefined), true),
+        port: readDashboardPort(),
     },
 };
 
@@ -85,6 +123,8 @@ cfg.applyUpdate = (updates) => {
     cfg.gardena.defaultValveDurationSec = Number(
         pick('GARDENA_VALVE_DURATION_SEC', cfg.gardena.defaultValveDurationSec),
     );
+    cfg.dashboard.enabled = asBool(pick('DASHBOARD_ENABLED', undefined), true);
+    cfg.dashboard.port = readDashboardPort();
 };
 
 module.exports = cfg;

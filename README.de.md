@@ -6,7 +6,7 @@
 
 # hmip-gardena-plugin
 
-📦 **[hmip-gardena-plugin-1.1.2.tar.gz herunterladen](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.1.2.tar.gz)** — Installation in HCUweb über *Entwicklermodus → Plugins → Aus Datei installieren*.
+📦 **[hmip-gardena-plugin-1.2.0-arm64.tar.gz herunterladen](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.2.0-arm64.tar.gz)** — Installation in HCUweb über *Entwicklermodus → Plugins → Aus Datei installieren*.
 
 GitHub: <https://github.com/fabiorenner-hub/hmip-hcu-gardena>
 
@@ -29,6 +29,19 @@ hält bei mir die Lichter an, während ich weitere HCU-Plugins baue:
    eintragen (**API Key** / **API Secret** aus dem
    [Husqvarna Developer Portal](https://developer.husqvarnagroup.cloud/)).
 4. Speichern. Nach dem OAuth-Login erscheinen deine Gardena-Geräte im HMIP-Posteingang.
+
+## Dashboard
+
+Das Plugin stellt ein lokales Status-Dashboard (Dark-Glass-Oberfläche, DE/EN)
+unter `http://<HCU-Adresse>:8093` bereit — Live-Gerätestatus, Diagnose, Logs
+mit 360°-Export und Update-Hinweis. In der *Konfiguration* lässt es sich
+abschalten oder der Port ändern; der Container hält Port **8093** für seinen
+Health-Check stets erreichbar.
+
+> Hinweis: Der **Helligkeitswert** der Gardena-Sensoren wird bis **20.000 lx**
+> angezeigt. Das ist das Maximum der Connect-API-Feature `Illumination`
+> (Spec §6.7.15), keine Plugin-Grenze — höhere Werte kann die HMIP-App nicht
+> darstellen.
 
 ## Selbst bauen
 

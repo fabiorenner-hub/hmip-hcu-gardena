@@ -42,6 +42,20 @@ class GardenaClient extends EventEmitter {
         this._wsPingTimer = null;
         this._reconnectTimer = null;
         this._stopping = false;
+        // Reconnect/back-off bookkeeping. `_reconnectAttempts` drives the
+        // exponential back-off; `_rateLimitedUntil` is a wall-clock deadline we
+        // must not retry before after an HTTP 429; `_lastSnapshotAt` lets us
+        // skip redundant REST snapshot reloads on routine websocket reconnects.
+        this._reconnectAttempts = 0;
+        this._rateLimitedUntil = 0;
+        this._lastSnapshotAt = 0;
+        // Last human-readable failure reason (for diagnostics / logs).
+        this.lastError = null;
+    }
+
+    /** True while we are deliberately backing off after a 429 rate limit. */
+    get rateLimited() {
+        return Date.now() < this._rateLimitedUntil;
     }
 
     async start() {
@@ -68,22 +82,61 @@ class GardenaClient extends EventEmitter {
             if (!this.locationId) {
                 this.locationId = await this._pickLocation();
             }
-            await this._loadLocationSnapshot();
+            // Skip the REST snapshot on routine reconnects: the websocket
+            // replays full entity states on change anyway, and avoiding the
+            // extra GET keeps us under the Gardena rate limit.
+            const snapshotStale =
+                this.services.size === 0 ||
+                Date.now() - this._lastSnapshotAt > cfg.snapshotMaxAgeMs;
+            if (snapshotStale) {
+                await this._loadLocationSnapshot();
+                this._lastSnapshotAt = Date.now();
+            }
             await this._openWebsocket();
             this.connected = true;
+            // A clean connect clears the back-off and error state.
+            this._reconnectAttempts = 0;
+            this.lastError = null;
             this.emit('ready');
         } catch (err) {
-            logger.error('Gardena connect failed:', err && err.message ? err.message : err);
+            if (err && err.status === 429) {
+                this._rateLimitedUntil = Date.now() + cfg.rateLimitCooldownMs;
+                this.lastError = 'Gardena API rate limit reached (HTTP 429).';
+                logger.error(
+                    `Gardena rate limit hit (429); backing off for ${Math.round(
+                        cfg.rateLimitCooldownMs / 60000,
+                    )} min before retrying.`,
+                );
+            } else {
+                this.lastError = err && err.message ? err.message : String(err);
+                logger.error('Gardena connect failed:', this.lastError);
+            }
             this._scheduleReconnect();
         }
     }
 
     _scheduleReconnect() {
         if (this._stopping || this._reconnectTimer) return;
+        const now = Date.now();
+        let delay;
+        if (this._rateLimitedUntil > now) {
+            // Honour the 429 cooldown deadline exactly.
+            delay = this._rateLimitedUntil - now;
+        } else {
+            // Exponential back-off capped at maxReconnectDelayMs, with jitter in
+            // [delay/2, delay] to avoid synchronised reconnect storms.
+            const capped = Math.min(
+                cfg.maxReconnectDelayMs,
+                cfg.reconnectDelayMs * 2 ** this._reconnectAttempts,
+            );
+            delay = capped / 2 + Math.random() * (capped / 2);
+            this._reconnectAttempts += 1;
+        }
+        logger.info(`Gardena reconnect scheduled in ${Math.round(delay / 1000)}s`);
         this._reconnectTimer = setTimeout(() => {
             this._reconnectTimer = null;
             this._connect();
-        }, cfg.reconnectDelayMs);
+        }, delay);
     }
 
     // --- OAuth -------------------------------------------------------------
@@ -134,9 +187,7 @@ class GardenaClient extends EventEmitter {
     async _apiGet(path) {
         await this._ensureToken();
         const res = await fetch(`${cfg.apiBase}${path}`, { headers: this._apiHeaders() });
-        if (!res.ok) {
-            throw new Error(`GET ${path} failed (${res.status}): ${await res.text()}`);
-        }
+        if (!res.ok) throw await this._httpError('GET', path, res);
         return res.json();
     }
 
@@ -147,9 +198,7 @@ class GardenaClient extends EventEmitter {
             headers: this._apiHeaders(),
             body: JSON.stringify(body),
         });
-        if (!res.ok) {
-            throw new Error(`PUT ${path} failed (${res.status}): ${await res.text()}`);
-        }
+        if (!res.ok) throw await this._httpError('PUT', path, res);
         const text = await res.text();
         return text ? JSON.parse(text) : {};
     }
@@ -161,12 +210,21 @@ class GardenaClient extends EventEmitter {
             headers: this._apiHeaders(),
             body: JSON.stringify(body),
         });
-        if (!res.ok) {
-            throw new Error(`POST ${path} failed (${res.status}): ${await res.text()}`);
-        }
+        if (!res.ok) throw await this._httpError('POST', path, res);
         // 202 Accepted for commands returns no body
         const text = await res.text();
         return text ? JSON.parse(text) : {};
+    }
+
+    /**
+     * Build an Error from a failed fetch Response and tag it with the HTTP
+     * status so callers can special-case 429 (rate limit) back-off.
+     */
+    async _httpError(method, path, res) {
+        const text = await res.text().catch(() => '');
+        const err = new Error(`${method} ${path} failed (${res.status}): ${text}`);
+        err.status = res.status;
+        return err;
     }
 
     // --- Discovery ---------------------------------------------------------

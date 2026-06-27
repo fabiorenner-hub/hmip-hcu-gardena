@@ -9,6 +9,7 @@
 const logger = require('./logger');
 const { HcuClient } = require('./hcu-client');
 const { GardenaClient } = require('./gardena-client');
+const { Dashboard } = require('./dashboard');
 const {
     toDevice,
     toStatus,
@@ -24,6 +25,7 @@ class GardenaPlugin {
         this.hcu = new HcuClient();
         this.gardena = new GardenaClient();
         this.includedDevices = new Set();
+        this.dashboard = new Dashboard(this);
     }
 
     async start() {
@@ -31,11 +33,24 @@ class GardenaPlugin {
         this._wireHcu();
         this.hcu.start();
         this.gardena.start().catch((err) => logger.error('Gardena start failed:', err));
+        // Non-fatal: a dashboard bind error must never take the bridge down.
+        this.dashboard.start();
     }
 
     async stop() {
         this.hcu.stop();
         await this.gardena.stop();
+        this.dashboard.stop();
+    }
+
+    _restartDashboard() {
+        try {
+            this.dashboard.stop();
+        } catch (err) {
+            logger.warn('Dashboard stop failed:', err.message);
+        }
+        this.dashboard = new Dashboard(this);
+        this.dashboard.start();
     }
 
     _wireGardena() {
@@ -177,6 +192,13 @@ class GardenaPlugin {
                             : 'Additional settings. Leave empty for defaults.',
                         order: 20,
                     },
+                    dashboard: {
+                        friendlyName: de ? 'Dashboard' : 'Dashboard',
+                        description: de
+                            ? 'Lokale Status-Weboberfläche des Plugins. Erreichbar im Heimnetz unter der HCU-Adresse und dem gewählten Port.'
+                            : 'The plugin\u2019s local status web UI. Reachable on your home network at the HCU address and the chosen port.',
+                        order: 30,
+                    },
                 },
                 properties: {
                     GARDENA_CLIENT_ID: {
@@ -229,6 +251,30 @@ class GardenaPlugin {
                         maximum: 14400,
                         order: 2,
                     },
+                    DASHBOARD_ENABLED: {
+                        dataType: 'BOOLEAN',
+                        friendlyName: de ? 'Dashboard aktivieren' : 'Enable dashboard',
+                        description: de
+                            ? 'Schaltet die lokale Status-Weboberfläche an oder aus. Aus = es wird keine Oberfläche bereitgestellt (das Plugin selbst läuft weiter).'
+                            : 'Turns the local status web UI on or off. Off = no UI is served (the bridge itself keeps running).',
+                        groupId: 'dashboard',
+                        currentValue: cfg.dashboard.enabled,
+                        defaultValue: true,
+                        order: 1,
+                    },
+                    DASHBOARD_PORT: {
+                        dataType: 'INTEGER',
+                        friendlyName: de ? 'Dashboard-Port' : 'Dashboard port',
+                        description: de
+                            ? 'Port der Weboberfläche. Standard 8093. Hinweis: Der Container stellt den Port 8093 fest bereit – ein abweichender Port ist von außen evtl. nicht erreichbar.'
+                            : 'Web UI port. Default 8093. Note: the container fixes port 8093 at build time \u2013 a different port may not be reachable from outside.',
+                        groupId: 'dashboard',
+                        currentValue: cfg.dashboard.port,
+                        defaultValue: 8093,
+                        minimum: 1024,
+                        maximum: 65535,
+                        order: 2,
+                    },
                 },
             },
             env,
@@ -255,6 +301,8 @@ class GardenaPlugin {
             this.gardena = new GardenaClient();
             this._wireGardena();
             await this.gardena.start();
+            // Apply any dashboard enable/port change.
+            this._restartDashboard();
             this.hcu.sendPluginState(this._readiness());
         } catch (err) {
             logger.error('Config update failed:', err);

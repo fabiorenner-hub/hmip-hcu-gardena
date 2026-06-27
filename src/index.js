@@ -19,6 +19,7 @@ async function main() {
     process.on('SIGINT', () => shutdown('SIGINT'));
     process.on('SIGTERM', () => shutdown('SIGTERM'));
     process.on('unhandledRejection', (err) => logger.error('unhandledRejection:', err));
+    process.on('uncaughtException', (err) => logger.error('uncaughtException:', err));
 
     await plugin.start();
 }

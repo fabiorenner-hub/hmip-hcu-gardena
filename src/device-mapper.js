@@ -110,6 +110,14 @@ function buildFeatures(service, owner) {
 
         // Smart Sensor reports brightness in lux as `lightIntensity` (primary)
         // or occasionally as `illumination`.
+        //
+        // NOTE: the Connect API Illumination feature (spec 1.0.1 §6.7.15) is a
+        // Double with a HARD range of 0..20000 lux. The HCU's Jackson validator
+        // rejects the whole STATUS envelope if the value is out of range, which
+        // would silently stop ALL updates for this sensor. The Gardena sensor
+        // measures well past 100000 lux, but the HMIP app can only display up
+        // to 20000 lux through this feature — so we MUST clamp here. Do not
+        // remove this cap; raising it past 20000 breaks the device entirely.
         const lux = typeof s.lightIntensity === 'number' ? s.lightIntensity : s.illumination;
         if (typeof lux === 'number' && Number.isFinite(lux)) {
             features.push({
