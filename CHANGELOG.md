@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-07-14
+
+### Changed
+- Dashboard title renamed to **HmIP Gardena Bridge**.
+- **Automatic** updates on the **stable** channel are now the default.
+- First version rolled out as a stable OTA update to installed 1.3.0 cores.
+
 ## [1.3.0] - 2026-07-14
 
 ### Added

@@ -106,7 +106,8 @@ const cfg = {
     // OTA self-update. mode/channel are controlled from the dashboard Updates
     // tab; the check interval is fixed.
     updates: {
-        mode: String(pick('UPDATES_MODE', 'manual')) === 'auto' ? 'auto' : 'manual',
+        // Default out of the box: automatic updates on the stable channel.
+        mode: String(pick('UPDATES_MODE', 'auto')) === 'manual' ? 'manual' : 'auto',
         channel: String(pick('UPDATES_CHANNEL', 'stable')) === 'experimental' ? 'experimental' : 'stable',
         checkIntervalHours: 6,
     },

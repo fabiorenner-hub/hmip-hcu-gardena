@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $Image = 'hmip-gardena-plugin'
-$Tag = '1.3.0'
+$Tag = '1.3.1'
 $Platform = 'linux/arm64'
 $Tar = "$Image-$Tag-arm64.tar"
 $OutGz = "$Tar.gz"
