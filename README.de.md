@@ -33,9 +33,9 @@ hält bei mir die Lichter an, während ich weitere HCU-Plugins baue:
 ## Dashboard
 
 Das Plugin stellt ein lokales Status-Dashboard (Dark-Glass-Oberfläche, DE/EN)
-unter `http://<HCU-Adresse>:8093` bereit — Live-Gerätestatus, Diagnose, Logs
+unter `http://<HCU-Adresse>:8094` bereit — Live-Gerätestatus, Diagnose, Logs
 mit 360°-Export und Update-Hinweis. In der *Konfiguration* lässt es sich
-abschalten oder der Port ändern; der Container hält Port **8093** für seinen
+abschalten oder der Port ändern; der Container hält Port **8094** für seinen
 Health-Check stets erreichbar.
 
 > Hinweis: Der **Helligkeitswert** der Gardena-Sensoren wird bis **20.000 lx**

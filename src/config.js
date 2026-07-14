@@ -45,9 +45,9 @@ function asBool(v, dflt) {
 }
 
 function readDashboardPort() {
-    const raw = pick('DASHBOARD_PORT', '') || process.env.HMIP_DASHBOARD_PORT || 8093;
+    const raw = pick('DASHBOARD_PORT', '') || process.env.HMIP_DASHBOARD_PORT || 8094;
     const n = Number(raw);
-    return Number.isInteger(n) && n >= 1024 && n <= 65535 ? n : 8093;
+    return Number.isInteger(n) && n >= 1024 && n <= 65535 ? n : 8094;
 }
 
 const cfg = {
@@ -95,8 +95,8 @@ const cfg = {
 
     dashboard: {
         // Toggle + port are user-editable from the HCUweb plugin settings.
-        // NOTE: the container's HEALTHCHECK and EXPOSE are fixed to 8093 at
-        // build time, so a health endpoint always stays reachable on 8093
+        // NOTE: the container's HEALTHCHECK and EXPOSE are fixed to 8094 at
+        // build time, so a health endpoint always stays reachable on 8094
         // regardless of these values (see dashboard.js). Picking a different
         // port mainly changes where the UI itself listens.
         enabled: asBool(pick('DASHBOARD_ENABLED', undefined), true),

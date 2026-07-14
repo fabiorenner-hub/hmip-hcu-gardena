@@ -30,7 +30,7 @@ const PUBLIC_DIR = path.join(__dirname, 'public');
 // A /health endpoint must always be reachable here so the container reports
 // Docker "healthy" (which is what lets the HCU finish installing), regardless
 // of whether the user disabled the dashboard or moved it to another port.
-const HEALTH_PORT = Number(process.env.HMIP_HEALTH_PORT || 8093);
+const HEALTH_PORT = Number(process.env.HMIP_HEALTH_PORT || 8094);
 
 const MIME = {
     '.html': 'text/html; charset=utf-8',

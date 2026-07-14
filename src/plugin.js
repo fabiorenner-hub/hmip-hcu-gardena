@@ -266,11 +266,11 @@ class GardenaPlugin {
                         dataType: 'INTEGER',
                         friendlyName: de ? 'Dashboard-Port' : 'Dashboard port',
                         description: de
-                            ? 'Port der Weboberfläche. Standard 8093. Hinweis: Der Container stellt den Port 8093 fest bereit – ein abweichender Port ist von außen evtl. nicht erreichbar.'
-                            : 'Web UI port. Default 8093. Note: the container fixes port 8093 at build time \u2013 a different port may not be reachable from outside.',
+                            ? 'Port der Weboberfläche. Standard 8094. Hinweis: Der Container stellt den Port 8094 fest bereit – ein abweichender Port ist von außen evtl. nicht erreichbar.'
+                            : 'Web UI port. Default 8094. Note: the container fixes port 8094 at build time \u2013 a different port may not be reachable from outside.',
                         groupId: 'dashboard',
                         currentValue: cfg.dashboard.port,
-                        defaultValue: 8093,
+                        defaultValue: 8094,
                         minimum: 1024,
                         maximum: 65535,
                         order: 2,

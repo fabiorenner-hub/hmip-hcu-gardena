@@ -32,8 +32,6 @@ let CURRENT_TAB = location.hash.replace('#', '') || 'overview';
 let UPDATE_INFO = { available: false, latest: null };
 let bannerDismissed = false;
 let OTA = null;
-let ANALYTICS_PREVIEW = null;
-let SHOW_PREVIEW = false;
 let INSTALLING = false;
 let INSTALL_STEP = 0; // 1 installing, 2 restarting, 3 done
 
@@ -313,15 +311,6 @@ async function saveSetting(patch) {
         /* ignore */
     }
     await loadOta();
-    if (STATE && typeof patch.analyticsEnabled === 'boolean') STATE.analyticsEnabled = patch.analyticsEnabled;
-    render();
-}
-async function loadAnalyticsPreview() {
-    try {
-        ANALYTICS_PREVIEW = await getJSON('/api/analytics/preview');
-    } catch (_) {
-        ANALYTICS_PREVIEW = null;
-    }
     render();
 }
 async function waitForRestart(before) {
@@ -409,13 +398,6 @@ function viewUpdates() {
         </div>`;
     }
 
-    const aOn = STATE ? STATE.analyticsEnabled !== false : true;
-    const analyticsCard = `<div class="glass"><h2>${t('Anonyme Nutzungsstatistik', 'Anonymous usage statistics')}</h2>
-        <div class="row"><button data-analytics class="${aOn ? 'primary' : ''}">${aOn ? t('An', 'On') : t('Aus', 'Off')}</button><span class="hint">${t('Opt-out. Anonym, ohne Geräte-/Standortdaten.', 'Opt-out. Anonymous, no device/location data.')}</span></div>
-        <div class="row" style="margin-top:var(--sp-2)"><button data-preview>${SHOW_PREVIEW ? t('Vorschau verbergen', 'Hide preview') : t('Was wird gesendet?', 'What is sent?')}</button></div>
-        ${SHOW_PREVIEW ? `<pre class="logs" style="max-height:220px">${ANALYTICS_PREVIEW ? escapeHtml(JSON.stringify(ANALYTICS_PREVIEW, null, 2)) : t('Lädt…', 'Loading…')}</pre>` : ''}
-    </div>`;
-
     const linksCard = `<div class="glass"><h2>GitHub</h2>
         <p class="hint">${t('Quellcode, Releases und Changelog.', 'Source, releases and changelog.')}</p>
         <div class="row" style="margin-top:var(--sp-3)">
@@ -428,7 +410,7 @@ function viewUpdates() {
         t('Updates', 'Updates'),
         OTA ? (OTA.updateAvailable ? t('Update verfügbar', 'Update available') : t('Aktuell', 'Up to date')) : null,
         t('Automatische Over-the-Air-Updates aus GitHub-Releases. Der stabile Kern bleibt als Fallback immer installiert.', 'Automatic over-the-air updates from GitHub releases. The stable core always stays installed as a fallback.'),
-        `<div class="grid">${otaCard}${analyticsCard}${linksCard}</div>`,
+        `<div class="grid">${otaCard}${linksCard}</div>`,
     );
 }
 
@@ -502,19 +484,6 @@ function render() {
     view.querySelectorAll('[data-set]').forEach(
         (b) => (b.onclick = () => saveSetting({ [b.dataset.set]: b.dataset.val })),
     );
-    const analytics = view.querySelector('[data-analytics]');
-    if (analytics) {
-        analytics.onclick = () =>
-            saveSetting({ analyticsEnabled: !(STATE && STATE.analyticsEnabled !== false) });
-    }
-    const preview = view.querySelector('[data-preview]');
-    if (preview) {
-        preview.onclick = () => {
-            SHOW_PREVIEW = !SHOW_PREVIEW;
-            render();
-            if (SHOW_PREVIEW && !ANALYTICS_PREVIEW) loadAnalyticsPreview();
-        };
-    }
     if (CURRENT_TAB === 'updates' && !OTA) loadOta();
 }
 

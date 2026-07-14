@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/).
 ### Changed
 - Boot now goes through `src/bootstrap/loader.js`; the running version is
   resolved from the environment (`HMIP_OTA_VERSION || HMIP_VERSION`).
+- Default dashboard port changed from 8093 to **8094**.
 
 ## [1.2.0] - 2026-06-27
 
