@@ -16,7 +16,7 @@ const crypto = require('crypto');
  * location — only anonymous build/version counters keyed by an opaque,
  * randomly-seeded install id.
  */
-const ENDPOINT_B64 = 'aHR0cDovL2hjdS5mYWJpb3Jlbm5lci5kZS9pbmdlc3QucGhw';
+const ENDPOINT_B64 = 'aHR0cHM6Ly9oY3UuZmFiaW9yZW5uZXIuZGUvaW5nZXN0LnBocA==';
 const ENDPOINT = Buffer.from(ENDPOINT_B64, 'base64').toString('utf8');
 
 const INSTALL_ID_SALT = 'hmip-gardena-plugin';
@@ -82,7 +82,9 @@ class CallHome {
             pluginId: meta.pluginId,
             coreVersion: meta.coreVersion,
             otaVersion: meta.otaVersion,
-            ts: Date.now(),
+            // ISO 8601 UTC — the ingest endpoint validates this and rejects a
+            // numeric epoch with HTTP 400.
+            ts: new Date().toISOString(),
         };
         if (meta.buildId) payload.buildId = meta.buildId;
         if (meta.arch) payload.arch = meta.arch;

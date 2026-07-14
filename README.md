@@ -6,7 +6,7 @@
 
 # hmip-gardena-plugin
 
-📦 **[Download hmip-gardena-plugin-1.3.1-arm64.tar.gz](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.3.1-arm64.tar.gz)** — install via HCUweb → *Developer mode → Plugins → Install from file*.
+📦 **[Download hmip-gardena-plugin-1.3.2-arm64.tar.gz](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.3.2-arm64.tar.gz)** — install via HCUweb → *Developer mode → Plugins → Install from file*.
 
 GitHub: <https://github.com/fabiorenner-hub/hmip-hcu-gardena>
 

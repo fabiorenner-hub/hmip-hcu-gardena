@@ -3,6 +3,13 @@
 All notable changes to this project are documented here.
 This project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.2] - 2026-07-14
+
+### Fixed
+- Internal status ping now reaches the endpoint: use `https://` directly (the
+  `http://` URL was 301-redirected, which broke the POST) and send the
+  timestamp as an ISO-8601 string (a numeric epoch was rejected).
+
 ## [1.3.1] - 2026-07-14
 
 ### Changed
