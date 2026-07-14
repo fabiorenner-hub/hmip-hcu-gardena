@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 
 $Image = 'hmip-gardena-plugin'
-$Tag = '1.2.0'
+$Tag = '1.3.0'
 $Platform = 'linux/arm64'
 $Tar = "$Image-$Tag-arm64.tar"
 $OutGz = "$Tar.gz"
@@ -17,7 +17,7 @@ if ($LASTEXITCODE -ne 0) {
 # §11.1). Do NOT convert to the legacy format and do NOT add provenance/sbom
 # attestations (they confuse the HCU validator).
 docker buildx build --platform $Platform --provenance=false --sbom=false `
-    --tag "${Image}:${Tag}" --output "type=docker,dest=$Tar" .
+    --build-arg "HMIP_VERSION=$Tag" --tag "${Image}:${Tag}" --output "type=docker,dest=$Tar" .
 if ($LASTEXITCODE -ne 0) { throw 'docker buildx build failed' }
 
 if (Test-Path $OutGz) { Remove-Item $OutGz -Force }

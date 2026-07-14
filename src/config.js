@@ -102,6 +102,22 @@ const cfg = {
         enabled: asBool(pick('DASHBOARD_ENABLED', undefined), true),
         port: readDashboardPort(),
     },
+
+    // OTA self-update. mode/channel are controlled from the dashboard Updates
+    // tab; the check interval is fixed.
+    updates: {
+        mode: String(pick('UPDATES_MODE', 'manual')) === 'auto' ? 'auto' : 'manual',
+        channel: String(pick('UPDATES_CHANNEL', 'stable')) === 'experimental' ? 'experimental' : 'stable',
+        checkIntervalHours: 6,
+    },
+
+    // Anonymous opt-out usage ping. No endpoint field on purpose (see
+    // analytics/call-home.js).
+    analytics: {
+        enabled: asBool(pick('ANALYTICS_ENABLED', undefined), true),
+        intervalHours: 24,
+        pingSecret: pick('ANALYTICS_PING_SECRET', ''),
+    },
 };
 
 /**
@@ -125,6 +141,11 @@ cfg.applyUpdate = (updates) => {
     );
     cfg.dashboard.enabled = asBool(pick('DASHBOARD_ENABLED', undefined), true);
     cfg.dashboard.port = readDashboardPort();
+    cfg.updates.mode = String(pick('UPDATES_MODE', 'manual')) === 'auto' ? 'auto' : 'manual';
+    cfg.updates.channel =
+        String(pick('UPDATES_CHANNEL', 'stable')) === 'experimental' ? 'experimental' : 'stable';
+    cfg.analytics.enabled = asBool(pick('ANALYTICS_ENABLED', undefined), true);
+    cfg.analytics.pingSecret = pick('ANALYTICS_PING_SECRET', '');
 };
 
 module.exports = cfg;

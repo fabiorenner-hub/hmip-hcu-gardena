@@ -278,6 +278,19 @@ th { color: var(--color-muted); font-weight: 600; font-size: 12px; }
 
 .empty, .loading { color: var(--color-muted); padding: var(--sp-5); text-align: center; }
 
+.skeleton-bar {
+    height: 6px;
+    border-radius: var(--radius-pill);
+    margin: var(--sp-3) 0;
+    background: linear-gradient(90deg, var(--color-card-border) 0%, var(--color-accent) 50%, var(--color-card-border) 100%);
+    background-size: 400% 100%;
+    animation: skeleton-shimmer 1.4s ease infinite;
+}
+@keyframes skeleton-shimmer {
+    0% { background-position: 100% 0; }
+    100% { background-position: -100% 0; }
+}
+
 .help-item { margin-bottom: var(--sp-4); }
 .help-item h3 { margin: 0 0 var(--sp-1); font-size: 0.98rem; }
 .help-item p { margin: 0; color: var(--color-muted); }

@@ -6,7 +6,7 @@
 
 # hmip-gardena-plugin
 
-📦 **[Download hmip-gardena-plugin-1.2.0-arm64.tar.gz](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.2.0-arm64.tar.gz)** — install via HCUweb → *Developer mode → Plugins → Install from file*.
+📦 **[Download hmip-gardena-plugin-1.3.0-arm64.tar.gz](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.3.0-arm64.tar.gz)** — install via HCUweb → *Developer mode → Plugins → Install from file*.
 
 GitHub: <https://github.com/fabiorenner-hub/hmip-hcu-gardena>
 
@@ -41,6 +41,15 @@ for its health check.
 > Note: the **brightness** value of Gardena sensors is shown up to **20,000 lx**.
 > That is the maximum of the Connect API `Illumination` feature (spec §6.7.15),
 > not a plugin limitation — the HMIP app cannot display higher values.
+
+### Updates (OTA)
+
+From v1.3.0 the plugin can update itself over the air from GitHub releases.
+In the dashboard *Updates* tab you can check for updates, switch between the
+**stable** and **experimental** channel and choose **manual** or **automatic**
+mode. The stable core image always stays installed as a fallback, so a bad
+update automatically rolls back. The initial install (and a core update, when
+required) is still a manual `.tar.gz` upload in HCUweb.
 
 ## Build it yourself
 

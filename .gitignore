@@ -13,3 +13,8 @@ data/
 TOKEN
 authtoken.txt
 
+# OTA release artifacts (uploaded as release assets, not committed)
+.otadata/
+*-ota-*.json
+ota-manifest*.json
+

@@ -6,7 +6,7 @@
 
 # hmip-gardena-plugin
 
-📦 **[hmip-gardena-plugin-1.2.0-arm64.tar.gz herunterladen](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.2.0-arm64.tar.gz)** — Installation in HCUweb über *Entwicklermodus → Plugins → Aus Datei installieren*.
+📦 **[hmip-gardena-plugin-1.3.0-arm64.tar.gz herunterladen](https://github.com/fabiorenner-hub/hmip-hcu-gardena/releases/latest/download/hmip-gardena-plugin-1.3.0-arm64.tar.gz)** — Installation in HCUweb über *Entwicklermodus → Plugins → Aus Datei installieren*.
 
 GitHub: <https://github.com/fabiorenner-hub/hmip-hcu-gardena>
 
@@ -42,6 +42,16 @@ Health-Check stets erreichbar.
 > angezeigt. Das ist das Maximum der Connect-API-Feature `Illumination`
 > (Spec §6.7.15), keine Plugin-Grenze — höhere Werte kann die HMIP-App nicht
 > darstellen.
+
+### Updates (OTA)
+
+Ab v1.3.0 kann sich das Plugin über GitHub-Releases selbst aktualisieren.
+Im *Updates*-Tab des Dashboards kannst du auf Updates prüfen, zwischen dem
+Kanal **Stabil** und **Experimentell** wechseln und **manuellen** oder
+**automatischen** Modus wählen. Das stabile Kern-Image bleibt immer als
+Fallback installiert, ein fehlerhaftes Update rollt automatisch zurück. Die
+Erst-Installation (und ein nötiges Kern-Update) bleibt ein manueller
+`.tar.gz`-Upload in HCUweb.
 
 ## Selbst bauen
 

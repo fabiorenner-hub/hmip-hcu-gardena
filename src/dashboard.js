@@ -21,7 +21,7 @@ const path = require('path');
 
 const logger = require('./logger');
 const cfg = require('./config');
-const { APP_VERSION, BUILD_ID, GITHUB_URL } = require('./version');
+const { APP_VERSION, BUILD_ID, GITHUB_URL, CORE_VERSION, RUNNING_VERSION } = require('./version');
 const { isExposable, deviceIdFor } = require('./device-mapper');
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
@@ -131,12 +131,70 @@ class Dashboard {
             if (p === '/api/diagnostics') return this._json(res, this._diagnostics());
             if (p === '/api/metrics') return this._json(res, this._metrics());
             if (p === '/api/logs') return this._json(res, { lines: logger.getRecentLogs() });
+            if (p === '/api/version') {
+                return this._json(res, { version: RUNNING_VERSION, core: CORE_VERSION, buildId: BUILD_ID });
+            }
+            if (p === '/api/ota/status') {
+                return this._json(res, this.plugin.ota ? this.plugin.ota.getStatus() : { error: 'no-ota' });
+            }
+            if (p === '/api/ota/check' && req.method === 'POST') {
+                return void this.plugin.ota
+                    .check()
+                    .then((s) => this._json(res, s))
+                    .catch((e) => this._json(res, { error: e.message }, 500));
+            }
+            if (p === '/api/ota/install' && req.method === 'POST') {
+                return void this.plugin.ota
+                    .install()
+                    .then((r) => this._json(res, r, r && r.ok ? 200 : 400))
+                    .catch((e) => this._json(res, { error: e.message }, 500));
+            }
+            if (p === '/api/analytics/preview') {
+                return this._json(res, this.plugin.callHome ? this.plugin.callHome.preview() : {});
+            }
+            if (p === '/api/settings' && req.method === 'POST') {
+                return void this._handleSettings(req, res);
+            }
             if (p.startsWith('/api/')) return this._json(res, { error: { code: 404, message: 'Not found' } }, 404);
             return this._static(p, res);
         } catch (err) {
             logger.warn('Dashboard request failed:', err.message);
             this._json(res, { error: { code: 500, message: err.message } }, 500);
         }
+    }
+
+    _readBody(req) {
+        return new Promise((resolve) => {
+            let data = '';
+            req.on('data', (c) => {
+                data += c;
+                if (data.length > 1e6) req.destroy();
+            });
+            req.on('end', () => {
+                try {
+                    resolve(data ? JSON.parse(data) : {});
+                } catch (_) {
+                    resolve({});
+                }
+            });
+            req.on('error', () => resolve({}));
+        });
+    }
+
+    async _handleSettings(req, res) {
+        const body = await this._readBody(req);
+        const updates = {};
+        if (body.mode === 'auto' || body.mode === 'manual') updates.UPDATES_MODE = body.mode;
+        if (body.channel === 'stable' || body.channel === 'experimental') {
+            updates.UPDATES_CHANNEL = body.channel;
+        }
+        if (typeof body.analyticsEnabled === 'boolean') updates.ANALYTICS_ENABLED = body.analyticsEnabled;
+        if (Object.keys(updates).length) cfg.applyUpdate(updates);
+        this._json(res, {
+            ok: true,
+            updates: { mode: cfg.updates.mode, channel: cfg.updates.channel },
+            analytics: { enabled: cfg.analytics.enabled },
+        });
     }
 
     _json(res, obj, code = 200) {
@@ -252,6 +310,7 @@ class Dashboard {
                 lastError: g.lastError || null,
                 configured: Boolean(cfg.gardena.clientId && cfg.gardena.clientSecret),
             },
+            analyticsEnabled: cfg.analytics.enabled,
             counts: {
                 devices: devices.length,
                 included: devices.filter((d) => d.included).length,

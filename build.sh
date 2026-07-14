@@ -2,7 +2,7 @@
 set -euo pipefail
 
 IMAGE="hmip-gardena-plugin"
-TAG="1.2.0"
+TAG="1.3.0"
 PLATFORM="linux/arm64"
 OUT="${IMAGE}-${TAG}-arm64.tar"
 OUT_GZ="${OUT}.gz"
@@ -31,7 +31,7 @@ fi
 
 echo ">> Building ${IMAGE}:${TAG} for ${PLATFORM}"
 docker buildx build --platform "${PLATFORM}" --provenance=false --sbom=false \
-    --tag "${IMAGE}:${TAG}" --output "type=docker,dest=${OUT}" .
+    --build-arg "HMIP_VERSION=${TAG}" --tag "${IMAGE}:${TAG}" --output "type=docker,dest=${OUT}" .
 
 echo ">> Compressing to ${OUT_GZ}"
 gzip -f "${OUT}"

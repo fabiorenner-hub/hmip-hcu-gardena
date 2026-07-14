@@ -31,6 +31,11 @@ let STATE = null;
 let CURRENT_TAB = location.hash.replace('#', '') || 'overview';
 let UPDATE_INFO = { available: false, latest: null };
 let bannerDismissed = false;
+let OTA = null;
+let ANALYTICS_PREVIEW = null;
+let SHOW_PREVIEW = false;
+let INSTALLING = false;
+let INSTALL_STEP = 0; // 1 installing, 2 restarting, 3 done
 
 const TABS = () => [
     { id: 'overview', icon: '🌿', label: t('Übersicht', 'Overview') },
@@ -280,30 +285,151 @@ function viewLogs() {
     return panel(t('Logs & Debug', 'Logs & Debug'), `${LOGS.length} ${t('Zeilen', 'lines')}`, '', body);
 }
 
+async function loadOta() {
+    try {
+        OTA = await getJSON('/api/ota/status');
+    } catch (_) {
+        OTA = null;
+    }
+    if (CURRENT_TAB === 'updates') render();
+}
+async function doOtaCheck() {
+    try {
+        const r = await fetch('/api/ota/check', { method: 'POST' });
+        OTA = await r.json();
+    } catch (_) {
+        /* ignore */
+    }
+    render();
+}
+async function saveSetting(patch) {
+    try {
+        await fetch('/api/settings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(patch),
+        });
+    } catch (_) {
+        /* ignore */
+    }
+    await loadOta();
+    if (STATE && typeof patch.analyticsEnabled === 'boolean') STATE.analyticsEnabled = patch.analyticsEnabled;
+    render();
+}
+async function loadAnalyticsPreview() {
+    try {
+        ANALYTICS_PREVIEW = await getJSON('/api/analytics/preview');
+    } catch (_) {
+        ANALYTICS_PREVIEW = null;
+    }
+    render();
+}
+async function waitForRestart(before) {
+    let sawDown = false;
+    const start = Date.now();
+    while (Date.now() - start < 120000) {
+        await new Promise((r) => setTimeout(r, 2000));
+        try {
+            const r = await fetch('/api/version', { cache: 'no-store' });
+            if (!r.ok) {
+                sawDown = true;
+                continue;
+            }
+            const j = await r.json();
+            if (sawDown || (before && j.version !== before)) return;
+        } catch (_) {
+            sawDown = true;
+        }
+    }
+}
+async function doOtaInstall() {
+    if (INSTALLING) return;
+    INSTALLING = true;
+    INSTALL_STEP = 1;
+    const before = OTA ? OTA.otaVersion : null;
+    render();
+    try {
+        // The install POST may return {ok:true} OR drop mid-restart — both mean "installed".
+        await fetch('/api/ota/install', { method: 'POST' });
+    } catch (_) {
+        /* connection dropped by the restart = installed */
+    }
+    INSTALL_STEP = 2;
+    render();
+    await waitForRestart(before);
+    INSTALL_STEP = 3;
+    render();
+    setTimeout(() => location.reload(), 900);
+}
+
+function installStepsHtml() {
+    const steps = [t('Installieren', 'Installing'), t('Neustart', 'Restarting'), t('Fertig', 'Done')];
+    return (
+        `<div class="row">${steps
+            .map(
+                (s, i) =>
+                    `<span class="chip ${i + 1 < INSTALL_STEP ? 'chip--ok' : i + 1 === INSTALL_STEP ? 'chip--info' : ''}">${i + 1}. ${s}</span>`,
+            )
+            .join(' → ')}</div>` +
+        `<div class="skeleton-bar" aria-hidden="true"></div>` +
+        `<div class="hint">${t('Bitte warten – die Seite lädt nach dem Neustart automatisch neu.', 'Please wait – the page reloads automatically after the restart.')}</div>`
+    );
+}
+
 function viewUpdates() {
-    const cur = (STATE && STATE.version) || window.APP_VERSION;
-    const body = `<div class="grid">
-        <div class="glass"><h2>${t('Version', 'Version')}</h2>
-            <div class="metric">v${cur}</div>
-            <p class="hint">${UPDATE_INFO.available ? `${t('Verfügbar', 'Available')}: ${UPDATE_INFO.latest}` : t('Aktuell auf dem neuesten Stand (oder Prüfung offline).', 'Up to date (or check offline).')}</p>
-            <div class="row" style="margin-top:var(--sp-3)">
-                <a href="${window.GITHUB_URL}/releases/latest" target="_blank" rel="noopener"><button class="primary">${t('Releases öffnen', 'Open releases')}</button></a>
-                <a href="${window.GITHUB_URL}" target="_blank" rel="noopener"><button>GitHub</button></a>
-            </div>
-        </div>
-        <div class="glass"><h2>${t('So aktualisierst du', 'How to update')}</h2>
-            <ol style="margin:0;padding-left:1.2em;color:var(--color-muted)">
-                <li>${t('Neueste .tar.gz aus den GitHub-Releases laden.', 'Download the latest .tar.gz from GitHub releases.')}</li>
-                <li>${t('In HCUweb unter Plugins hochladen.', 'Upload it in HCUweb under Plugins.')}</li>
-                <li>${t('Die HCU hat keinen Auto-Updater – Updates sind manuell.', 'The HCU has no auto-updater – updates are manual.')}</li>
-            </ol>
-        </div>
-        <div class="glass"><h2>Changelog</h2>
-            <div class="help-item"><h3>1.2.0</h3><p>${t('Dashboard (Port 8093), robuster Gardena-Reconnect mit Backoff + 429-Cooldown, Lux-Hinweis.', 'Dashboard (port 8093), robust Gardena reconnect with backoff + 429 cooldown, lux note.')}</p></div>
-            <div class="help-item"><h3>1.1.x</h3><p>${t('Icon, README-Politur, Metadaten.', 'Icon, README polish, metadata.')}</p></div>
+    const seg = (val, active, label, key) =>
+        `<button class="seg__btn ${active ? 'seg__btn--active' : ''}" data-set="${key}" data-val="${val}">${label}</button>`;
+
+    let otaCard;
+    if (!OTA) {
+        otaCard = `<div class="glass"><h2>OTA</h2><div class="loading">${t('Lädt…', 'Loading…')}</div></div>`;
+    } else {
+        const o = OTA;
+        const modeSeg = `<div class="seg">${seg('manual', o.mode === 'manual', t('Manuell', 'Manual'), 'mode')}${seg('auto', o.mode === 'auto', t('Automatisch', 'Automatic'), 'mode')}</div>`;
+        const chanSeg = `<div class="seg">${seg('stable', o.channel === 'stable', t('Stabil', 'Stable'), 'channel')}${seg('experimental', o.channel === 'experimental', t('Experimentell', 'Experimental'), 'channel')}</div>`;
+        let action;
+        if (INSTALLING) {
+            action = installStepsHtml();
+        } else if (o.updateAvailable && o.requiresCore) {
+            action = `<span class="chip chip--warn"><span class="dot"></span>${t('Kern-Update nötig', 'Core update required')}</span><p class="hint">${t('Diese Version braucht einen neueren Kern. Bitte die aktuelle .tar.gz manuell in HCUweb installieren.', 'This version needs a newer core. Please install the latest .tar.gz manually in HCUweb.')}</p>`;
+        } else if (o.updateAvailable) {
+            action = `<button class="primary" data-install>${t('Jetzt aktualisieren', 'Update now')} → v${o.latest}</button>`;
+        } else {
+            action = `<span class="chip chip--ok"><span class="dot"></span>${t('Aktuell', 'Up to date')}</span>`;
+        }
+        otaCard = `<div class="glass"><h2>${t('Automatische Updates (OTA)', 'Automatic updates (OTA)')}</h2>
+            <div class="kv"><span>${t('Kern-Version', 'Core version')}</span><span>v${o.coreVersion}</span></div>
+            <div class="kv"><span>${t('Laufende Version', 'Running version')}</span><span>v${o.otaVersion}${o.otaActive ? ' · OTA' : ''}</span></div>
+            <div class="kv"><span>${t('Neueste', 'Latest')}</span><span>${o.latest ? 'v' + o.latest : '–'}</span></div>
+            <div class="row" style="margin:var(--sp-3) 0"><span class="hint">${t('Modus', 'Mode')}</span>${modeSeg}<span class="hint" style="margin-left:var(--sp-3)">${t('Kanal', 'Channel')}</span>${chanSeg}</div>
+            <div class="row"><button data-check ${o.checking ? 'disabled' : ''}>${o.checking ? t('Prüfe…', 'Checking…') : '↻ ' + t('Jetzt prüfen', 'Check now')}</button></div>
+            <div style="margin-top:var(--sp-3)">${action}</div>
+            ${o.lastError ? `<p class="hint" style="color:var(--color-danger)">${escapeHtml(o.lastError)}</p>` : ''}
+            ${o.quarantined && o.quarantined.length ? `<p class="hint">${t('Quarantäne', 'Quarantined')}: ${o.quarantined.join(', ')}</p>` : ''}
+        </div>`;
+    }
+
+    const aOn = STATE ? STATE.analyticsEnabled !== false : true;
+    const analyticsCard = `<div class="glass"><h2>${t('Anonyme Nutzungsstatistik', 'Anonymous usage statistics')}</h2>
+        <div class="row"><button data-analytics class="${aOn ? 'primary' : ''}">${aOn ? t('An', 'On') : t('Aus', 'Off')}</button><span class="hint">${t('Opt-out. Anonym, ohne Geräte-/Standortdaten.', 'Opt-out. Anonymous, no device/location data.')}</span></div>
+        <div class="row" style="margin-top:var(--sp-2)"><button data-preview>${SHOW_PREVIEW ? t('Vorschau verbergen', 'Hide preview') : t('Was wird gesendet?', 'What is sent?')}</button></div>
+        ${SHOW_PREVIEW ? `<pre class="logs" style="max-height:220px">${ANALYTICS_PREVIEW ? escapeHtml(JSON.stringify(ANALYTICS_PREVIEW, null, 2)) : t('Lädt…', 'Loading…')}</pre>` : ''}
+    </div>`;
+
+    const linksCard = `<div class="glass"><h2>GitHub</h2>
+        <p class="hint">${t('Quellcode, Releases und Changelog.', 'Source, releases and changelog.')}</p>
+        <div class="row" style="margin-top:var(--sp-3)">
+            <a href="${window.GITHUB_URL}/releases/latest" target="_blank" rel="noopener"><button class="primary">${t('Releases', 'Releases')}</button></a>
+            <a href="${window.GITHUB_URL}" target="_blank" rel="noopener"><button>Repo</button></a>
         </div>
     </div>`;
-    return panel(t('Updates', 'Updates'), null, '', body);
+
+    return panel(
+        t('Updates', 'Updates'),
+        OTA ? (OTA.updateAvailable ? t('Update verfügbar', 'Update available') : t('Aktuell', 'Up to date')) : null,
+        t('Automatische Over-the-Air-Updates aus GitHub-Releases. Der stabile Kern bleibt als Fallback immer installiert.', 'Automatic over-the-air updates from GitHub releases. The stable core always stays installed as a fallback.'),
+        `<div class="grid">${otaCard}${analyticsCard}${linksCard}</div>`,
+    );
 }
 
 function viewHelp() {
@@ -367,6 +493,29 @@ function render() {
     const exp = view.querySelector('[data-export]');
     if (exp) exp.onclick = exportAll;
     if (CURRENT_TAB === 'logs' && !LOGS.length) loadLogs();
+
+    // Updates tab wiring
+    const check = view.querySelector('[data-check]');
+    if (check) check.onclick = doOtaCheck;
+    const install = view.querySelector('[data-install]');
+    if (install) install.onclick = doOtaInstall;
+    view.querySelectorAll('[data-set]').forEach(
+        (b) => (b.onclick = () => saveSetting({ [b.dataset.set]: b.dataset.val })),
+    );
+    const analytics = view.querySelector('[data-analytics]');
+    if (analytics) {
+        analytics.onclick = () =>
+            saveSetting({ analyticsEnabled: !(STATE && STATE.analyticsEnabled !== false) });
+    }
+    const preview = view.querySelector('[data-preview]');
+    if (preview) {
+        preview.onclick = () => {
+            SHOW_PREVIEW = !SHOW_PREVIEW;
+            render();
+            if (SHOW_PREVIEW && !ANALYTICS_PREVIEW) loadAnalyticsPreview();
+        };
+    }
+    if (CURRENT_TAB === 'updates' && !OTA) loadOta();
 }
 
 /* ------------------------------------------------------------------ boot */
